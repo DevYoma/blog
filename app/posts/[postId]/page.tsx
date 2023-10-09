@@ -1,7 +1,10 @@
-import { getSortedPostsData, getPostData } from "@/lib/posts"
+import { getPostsMeta, getPostByName } from "@/lib/posts"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { getFormatedDate } from "@/lib/getFormattedDate"
+
+// route segment config for revalidation(No caching)
+export const revalidate = 86400;
 
 type Prop = {
     params: {
@@ -10,8 +13,10 @@ type Prop = {
 }
 
 // STATIC PARAMETERS
-export function generateStaticParams() {
-    const posts = getSortedPostsData()
+export async function generateStaticParams() {
+    const posts = await getPostsMeta()
+
+    if(!posts) return []
 
     return posts.map((post) => ({
         postId: post.id
@@ -19,12 +24,10 @@ export function generateStaticParams() {
 }
 
 // METADATA
-export function generateMetadata({ params }: Prop) {
+export async function generateMetadata({ params }: Prop) {
 
-    const posts = getSortedPostsData()
     const { postId } = params
-
-    const post = posts.find(post => post.id === postId)
+    const post = await getPostByName(`${postId}.mdx`)
 
     if (!post) {
         return {
@@ -33,34 +36,48 @@ export function generateMetadata({ params }: Prop) {
     }
 
     return {
-        title: post.title,
+        title: post.meta.title,
     }
 }
 
 // COMPONENT  
 export default async function Post({ params }: Prop) {
 
-    const posts = getSortedPostsData()
+    // const post = getPostByName()
     const { postId } = params
 
-    if (!posts.find(post => post.id === postId)) notFound()
+    const post = await getPostByName(`${postId}.mdx`)
 
-    const { title, date, contentHtml } = await getPostData(postId)
+    if(!post) notFound()
 
-    const pubDate = getFormatedDate(date)
+    const { meta, content } = post;
+
+    const pubDate = getFormatedDate(meta.date)
+
+    const tags = meta.tags.map((tag, i) => (
+        <Link key={i} href={`/tags/${tag}`}>
+            {tag}
+        </Link>
+    ))
 
     return (
-        <main className="px-6 prose prose-xl prose-slate dark:prose-invert mx-auto">
-            <h1 className="text-3xl mt-4 mb-0">{title}</h1>
-            <p className="mt-0">
+        <> 
+            <h2 className="text-3xl mt-4 mb-0">{meta.title}</h2>
+            <p className="mt-0 text-sm">
                 {pubDate}
             </p>
             <article>
-                <section dangerouslySetInnerHTML={{ __html: contentHtml }} />
-                <p>
-                    <Link href="/">← Back to home</Link>
-                </p>
+                {content}
             </article>
-        </main>
+            <section>
+                <h3>Related</h3>
+                <div className="flex flex-row gap-4">{tags}</div>
+            </section>
+            <p className="mb-10">
+                <Link href={'/'}>
+                    Back to home
+                </Link>
+            </p>
+        </>
     )
 }

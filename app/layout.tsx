@@ -1,8 +1,8 @@
 import Navbar from './components/Navbar'
-import ProfilePic from './components/ProfilePic'
 import './globals.css'
+import { Metadata } from 'next'
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Yoma's Blog",
   description: 'Created by Yoma Emore',
 }
@@ -16,8 +16,9 @@ export default function RootLayout({
     <html lang="en">
       <body className='dark:bg-slate-800'>
         <Navbar /> 
-        <ProfilePic />
-        {children}
+        <main className='px-4 md:px-6 prose prose-xl prose-slate dark:prose-invert mx-auto'>
+          {children}
+        </main>
       </body>
     </html>
   )

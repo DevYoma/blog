@@ -1,9 +1,15 @@
 import Posts from "./components/Posts";
+import ProfilePic from './components/ProfilePic'
 
+// revalidate
+export const revalidate = 86400; // 1 day in secs
+
+// dynamic params config(applied already)
 
 export default function Home() {
   return (
-    <main className="px-6 mx-auto">
+    <div className="mx-auto">
+      <ProfilePic />
       <p className="mt-12 mb-12 text-3xl text-center dark:text-white">
         Hello and Welcome 👋&nbsp;
         <span className="whitespace-nowrap">
@@ -12,6 +18,6 @@ export default function Home() {
       </p>      
 
       <Posts />
-    </main>
+    </div>
   )
 }
